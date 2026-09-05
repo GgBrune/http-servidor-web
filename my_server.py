@@ -1,11 +1,11 @@
 import json
 from wsgiref.simple_server import make_server
 
-tasks = { # diccionario de 'tasks'
+tasks = { # Diccionario de 'tasks'
     1: {"id": 1, "title": "Cocinar budín", "done": False},
     2: {"id": 2, "title": "Realizar servidor", "done": True},
 }
-next_id = 3 # llevar recuento de tareas
+next_id = 3 # Llevar recuento de tareas
 
     # environ = diccionario con la info del request
     # start_response = función para mandar el status y los headers
@@ -13,6 +13,7 @@ def app(environ, start_response):
 
     method = environ.get('REQUEST_METHOD') # qué VERBO llegó
     path = environ.get('PATH_INFO') # qué RUTA llegó
+
 
     if method == "GET":
 
@@ -51,7 +52,6 @@ def app(environ, start_response):
                         # "body"
                 return [json.dumps({"ERROR": "Task not found"}).encode("utf-8")]
 
-
     elif method == "POST" and path == "/tasks":
 
         status = "201 Created" # Defino el estado de la respuesta
@@ -73,7 +73,6 @@ def app(environ, start_response):
         response = json.dumps(new_task).encode("utf-8") # Creación de la respuesta
         start_response(status, headers) # Arma la respuesta
         return [response] # Retorna la tarea creada
-
 
     elif method == "PATCH" and path == "/tasks/{id}":
 
@@ -106,7 +105,6 @@ def app(environ, start_response):
             start_response(status, headers) # Arma la respuesta
                     # "body"
             return [json.dumps({"ERROR": "Task not found"}).encode("utf-8")]
-
 
     elif method == "DELETE" and path == "/tasks/{id}":
 
@@ -164,3 +162,10 @@ def app(environ, start_response):
             start_response(status, headers) # Arma la respuesta
                     # "body"
             return [json.dumps({"ERROR": "Wrong request"}).encode("utf-8")]
+
+
+with make_server("", 9292, app) as server: # Guarda el servidor en la variable 'server'
+# "with" = manejo seguro de archivos
+ 
+    print("Listening on http://localhost:9292")
+    server.serve_forever() # Deja el servidor corriendo indefinidamente
