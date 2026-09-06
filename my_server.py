@@ -29,7 +29,7 @@ def app(environ, start_response):
             start_response(status, headers) # Arma la respuesta
             return [body] # Retorna las tareas
 
-        elif path == "/tasks/{id}":
+        elif path.startswith("/tasks/"): # Compara si empieza con ese string y hay 'algo' después
             
             id_string = path[len("/tasks/"):] # Toma el carácter después de la posición 7
             task_id = int(id_string) # Convierte el número string en int
@@ -57,7 +57,7 @@ def app(environ, start_response):
         status = "201 Created" # Defino el estado de la respuesta
         headers = [("Content-Type", "application/json")] # Linea obligatoria
 
-        global next_id # ???
+        global next_id
 
         # Toma la longitud del request
         content_length = int(environ.get('CONTENT_LENGTH', 0) or 0)
@@ -66,7 +66,7 @@ def app(environ, start_response):
         data = json.loads(body)
 
         # Crea la nueva tarea
-        new_task = {"is": next_id, "title": data.get("title", ""), "done": data.get("done", False)}
+        new_task = {"id": next_id, "title": data.get("title", ""), "done": data.get("done", False)}
         tasks[next_id] = new_task
         next_id += 1
 
@@ -74,7 +74,7 @@ def app(environ, start_response):
         start_response(status, headers) # Arma la respuesta
         return [response] # Retorna la tarea creada
 
-    elif method == "PATCH" and path == "/tasks/{id}":
+    elif method == "PATCH" and path.startswith("/tasks/"):
 
         headers = [("Content-Type", "application/json")] # Linea obligatoria
 
@@ -106,7 +106,7 @@ def app(environ, start_response):
                     # "body"
             return [json.dumps({"ERROR": "Task not found"}).encode("utf-8")]
 
-    elif method == "DELETE" and path == "/tasks/{id}":
+    elif method == "DELETE" and path.startswith("/tasks/"):
 
         headers = [("Content-Type", "application/json")] # Linea obligatoria
         
@@ -115,25 +115,12 @@ def app(environ, start_response):
 
         # Si la tarea existe:
         if task_id in tasks:
+                tasks.pop(task_id) # Elimino la tarea
 
-            # Si la tarea tiene contenido:
-            if tasks[task_id]:
-                status = "200 OK" # Defino el estado de la respuesta
-
-                # Elimino la tarea y la guardo en una variable
-                task_del = tasks.pop(task_id)
-
-                body = json.dumps(task_del).encode("utf-8") # Creación de la respuesta
-                start_response(status, headers) # Arma la respuesta
-                return [body] # Retorna la tarea creada
-
-            # Si la tarea está "vacía":
-            else:
                 status = "204 No Content" # Defino el estado de la respuesta
-
                 start_response(status, headers) # Arma la respuesta
                         # "body"
-                return [json.dumps({"NO CONTENT": "Task already empty"}).encode("utf-8")]
+                return [json.dumps({"SUCCESS": "Task deleted"}).encode("utf-8")]
 
         # Si la tarea NO existe:
         else:
@@ -148,7 +135,7 @@ def app(environ, start_response):
         headers = [("Content-Type", "application/json")] # Linea obligatoria
 
         # Si la ruta existe:
-        if path == "/tasks" or path == "/tasks/{id}":
+        if path == "/tasks" or path.startswith("/tasks/"):
             status = "405 Method Not Allowed" # Defino el estado de la respuesta
 
             start_response(status, headers) # Arma la respuesta
